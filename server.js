@@ -160,14 +160,14 @@ app.get('/edit', async (req, res) => {
 
         if (!id) {
             // If no ID is provided in the query string, return a 400 error
-            return res.status(400).send({ error: 'Unique ID is required in the query parameters.' });
+            return res.status(400).json({ error: 'Unique ID is required in the query parameters.' });
         }
 
         // Convert the ID from string to a number
         const numericId = Number(id);
         if (isNaN(numericId)) {
             // If the ID is not a valid number, return a 400 error
-            return res.status(400).send({ error: 'Invalid ID provided. ID must be a number.' });
+            return res.status(400).json({ error: 'Invalid ID provided. ID must be a number.' });
         }
 
         // Log the numeric ID for debugging purposes
@@ -178,74 +178,27 @@ app.get('/edit', async (req, res) => {
 
         // If no submission is found with the given ID, return a 404 error
         if (!submission) {
-            return res.status(404).send({ error: `Submission with ID ${numericId} not found.` });
+            return res.status(404).json({ error: `Submission with ID ${numericId} not found.` });
         }
 
-        // Render the edit form with the submission data
-        const editPage = `
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Edit Abstract Submission</title>
-                <link rel="stylesheet" href="styles.css">
-            </head>
-            <body>
-                <header class="form-header">
-                    <img src="qatarenergy-logo.png" alt="QatarEnergy Logo" class="logo">
-                    <h1>Edit Abstract Submission: 19th QatarEnergy LNG Engineering Conference</h1>
-                </header>
-                <div class="form-container">
-                    <h1>Edit Your Abstract</h1>
-                    <form id="edit-form">
-                        <label for="submitter-name">Submitter Name<span class="required">*</span>:</label>
-                        <input type="text" id="submitter-name" name="submitterName" value="${submission.submitterName}" required>
+        // Return the submission data as JSON for frontend processing
+        res.status(200).json({
+            submitterName: submission.submitterName,
+            submitterEmail: submission.submitterEmail,
+            abstractTitle: submission.abstractTitle,
+            abstractType: submission.abstractType,
+            company: submission.company,
+            discipline: submission.discipline,
+            authorNames: submission.authorNames,
+            authorEmails: submission.authorEmails,
+            authorPositions: submission.authorPositions,
+            authorContact: submission.authorContact,
+            abstractContent: submission.abstractContent
+        });
 
-                        <label for="submitter-email">Submitter E-mail<span class="required">*</span>:</label>
-                        <input type="email" id="submitter-email" name="submitterEmail" value="${submission.submitterEmail}" required>
-
-                        <label for="abstract-title">Abstract Title<span class="required">*</span>:</label>
-                        <input type="text" id="abstract-title" name="abstractTitle" value="${submission.abstractTitle}" required>
-
-                        <label for="abstract-type">Abstract Type<span class="required">*</span>:</label>
-                        <select id="abstract-type" name="abstractType" required>
-                            <option value="technical-paper" ${submission.abstractType === 'technical-paper' ? 'selected' : ''}>Technical Paper</option>
-                            <option value="poster" ${submission.abstractType === 'poster' ? 'selected' : ''}>Poster</option>
-                        </select>
-
-                        <label for="company">Company<span class="required">*</span>:</label>
-                        <input type="text" id="company" name="company" value="${submission.company}" required>
-
-                        <label for="discipline">Discipline<span class="required">*</span>:</label>
-                        <input type="text" id="discipline" name="discipline" value="${submission.discipline}" required>
-
-                        <h3>Author/Co-author Details</h3>
-                        <label for="author-names">Author/Co-author Name(s)<span class="required">*</span>:</label>
-                        <input type="text" id="author-names" name="authorNames" value="${submission.authorNames}" required>
-
-                        <label for="author-emails">Author/Co-author E-mail(s)<span class="required">*</span>:</label>
-                        <input type="email" id="author-emails" name="authorEmails" value="${submission.authorEmails}" required>
-
-                        <label for="author-positions">Author/Co-author Position Title(s)<span class="required">*</span>:</label>
-                        <input type="text" id="author-positions" name="authorPositions" value="${submission.authorPositions}" required>
-
-                        <label for="author-contact">Author/Co-author Contact Number(s)<span class="required">*</span>:</label>
-                        <input type="text" id="author-contact" name="authorContact" value="${submission.authorContact}" required>
-
-                        <label for="abstract">Abstract (Max 350 words)<span class="required">*</span>:</label>
-                        <textarea id="abstract" name="abstractContent" rows="5" required>${submission.abstractContent}</textarea>
-
-                        <button type="submit">Update Submission</button>
-                    </form>
-                </div>
-            </body>
-            </html>
-        `;
-        res.send(editPage); // Send the populated HTML as response
     } catch (error) {
         console.error('Error in /edit endpoint:', error);
-        res.status(500).send({ error: 'An unexpected error occurred while fetching the submission.' });
+        res.status(500).json({ error: 'An unexpected error occurred while fetching the submission.' });
     }
 });
 
