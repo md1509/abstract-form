@@ -156,24 +156,28 @@ app.get('/edit', async (req, res) => {
         const { id } = req.query;
 
         // Debugging: Log the received ID
-        console.log(`Received ID: ${id}`);
+        console.log(`Received ID from query string: ${id}`);
 
         if (!id) {
-            // If no ID is provided, return a 400 error
+            // If no ID is provided in the query string, return a 400 error
             return res.status(400).send({ error: 'Unique ID is required in the query parameters.' });
         }
 
-        // Ensure the id is a valid number
+        // Convert the ID from string to a number
         const numericId = Number(id);
         if (isNaN(numericId)) {
+            // If the ID is not a valid number, return a 400 error
             return res.status(400).send({ error: 'Invalid ID provided. ID must be a number.' });
         }
 
-        // Find the submission with the given uniqueID
+        // Log the numeric ID for debugging purposes
+        console.log(`Converted ID to number: ${numericId}`);
+
+        // Query the database using the numeric ID
         const submission = await Submission.findOne({ uniqueID: numericId });
 
+        // If no submission is found with the given ID, return a 404 error
         if (!submission) {
-            // If no submission is found, return a 404 error
             return res.status(404).send({ error: `Submission with ID ${numericId} not found.` });
         }
 
