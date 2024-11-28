@@ -77,7 +77,6 @@ app.get('/', (req, res) => {
 });
 
 // API Endpoint to handle form submissions
-// API Endpoint to handle form submissions
 app.post('/submit', async (req, res) => {
     const sanitizedSubmission = sanitize(req.body);
 
@@ -110,6 +109,9 @@ app.post('/submit', async (req, res) => {
 
         // Generate an edit link dynamically
         const editLink = `${req.protocol}://${req.get('host')}/edit?id=${uniqueID}`;
+
+        // Log the edit link for debugging
+        console.log("Edit link:", editLink);
 
         // Send confirmation email to the submitter
         const confirmationEmail = {
@@ -148,23 +150,34 @@ app.post('/submit', async (req, res) => {
     }
 });
 
-
 // API Endpoint to fetch a submission by uniqueID and render the form with data
 app.get('/edit', async (req, res) => {
     try {
         const { id } = req.query;
+
+        // Debugging: Log the received ID
+        console.log(`Received ID: ${id}`);
+
         if (!id) {
+            // If no ID is provided, return a 400 error
             return res.status(400).send({ error: 'Unique ID is required in the query parameters.' });
         }
 
-        console.log(`Received ID: ${id}`);
-
-        const submission = await Submission.findOne({ uniqueID: Number(id) });
-
-        if (!submission) {
-            return res.status(404).send({ error: `Submission with ID ${id} not found.` });
+        // Ensure the id is a valid number
+        const numericId = Number(id);
+        if (isNaN(numericId)) {
+            return res.status(400).send({ error: 'Invalid ID provided. ID must be a number.' });
         }
 
+        // Find the submission with the given uniqueID
+        const submission = await Submission.findOne({ uniqueID: numericId });
+
+        if (!submission) {
+            // If no submission is found, return a 404 error
+            return res.status(404).send({ error: `Submission with ID ${numericId} not found.` });
+        }
+
+        // Render the edit form with the submission data
         const editPage = `
             <!DOCTYPE html>
             <html lang="en">
@@ -225,7 +238,6 @@ app.get('/edit', async (req, res) => {
             </body>
             </html>
         `;
-
         res.send(editPage); // Send the populated HTML as response
     } catch (error) {
         console.error('Error in /edit endpoint:', error);
