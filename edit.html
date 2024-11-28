@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Abstract Submission</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="form-header">
+        <img src="qatarenergy-logo.png" alt="QatarEnergy Logo" class="logo">
+        <h1>Edit Abstract Submission: 19th QatarEnergy LNG Engineering Conference</h1>
+    </header>
+
+    <div class="form-container">
+        <h1>Edit Your Abstract</h1>
+        <form id="edit-form" onsubmit="return handleUpdate(event)">
+            <label for="submitter-name">Submitter Name<span class="required">*</span>:</label>
+            <input type="text" id="submitter-name" name="submitterName" placeholder="Enter your name" required>
+
+            <label for="submitter-email">Submitter E-mail<span class="required">*</span>:</label>
+            <input type="email" id="submitter-email" name="submitterEmail" placeholder="Enter your email" required>
+
+            <label for="abstract-title">Abstract Title<span class="required">*</span>:</label>
+            <input type="text" id="abstract-title" name="abstractTitle" placeholder="Enter abstract title" required>
+
+            <!-- Abstract Type Dropdown -->
+            <label for="abstract-type">Abstract Type<span class="required">*</span>:</label>
+            <select id="abstract-type" name="abstractType" onchange="showAbstractOptions()" required>
+                <option value="technical-paper">Technical Paper</option>
+                <option value="poster">Poster</option>
+            </select>
+
+            <!-- Technical Paper Themes -->
+            <div id="technical-paper-options" class="hidden options-box">
+                <p>Technical Paper Themes:</p>
+                <label>
+                    <input type="radio" id="digitalization" name="theme" value="Digitalization, Cyber Security & AI">
+                    Digitalization, Cyber Security & AI
+                </label><br>
+                <label>
+                    <input type="radio" id="decarbonization" name="theme" value="Decarbonization Initiatives">
+                    Decarbonization Initiatives
+                </label><br>
+                <label>
+                    <input type="radio" id="aging-facilities" name="theme" value="Aging Facilities & Asset Life Extension">
+                    Aging Facilities & Asset Life Extension
+                </label><br>
+                <label>
+                    <input type="radio" id="energy-efficiency" name="theme" value="Energy Efficiency & Yield Improvement">
+                    Energy Efficiency & Yield Improvement
+                </label>
+            </div>
+
+            <!-- Poster Themes -->
+            <div id="poster-options" class="hidden options-box">
+                <p>Poster Themes:</p>
+                <label>
+                    <input type="radio" id="innovation" name="theme" value="Innovation, Technology & Sustainability">
+                    Innovation, Technology & Sustainability
+                </label><br>
+                <label>
+                    <input type="radio" id="integrity" name="theme" value="Integrity, Reliability & Process Safety">
+                    Integrity, Reliability & Process Safety
+                </label><br>
+                <label>
+                    <input type="radio" id="optimization" name="theme" value="Optimization, Best Practices & Operations Excellence">
+                    Optimization, Best Practices & Operations Excellence
+                </label>
+            </div>
+
+            <label for="company">Company<span class="required">*</span>:</label>
+            <input type="text" id="company" name="company" placeholder="Enter your company" required>
+
+            <label for="discipline">Discipline<span class="required">*</span>:</label>
+            <input type="text" id="discipline" name="discipline" placeholder="Enter your discipline" required>
+
+            <!-- Author/Co-author Details -->
+            <h3>Author/Co-author Details</h3>
+            <label for="author-names">Author/Co-author Name(s)<span class="required">*</span>:</label>
+            <input type="text" id="author-names" name="authorNames" placeholder="Enter names separated by commas" required>
+
+            <label for="author-emails">Author/Co-author E-mail(s)<span class="required">*</span>:</label>
+            <input type="email" id="author-emails" name="authorEmails" placeholder="Enter emails separated by commas" required multiple inputmode="text">
+
+            <label for="author-positions">Author/Co-author Position Title(s)<span class="required">*</span>:</label>
+            <input type="text" id="author-positions" name="authorPositions" placeholder="Enter positions separated by commas" required>
+
+            <label for="author-contact">Author/Co-author Contact Number(s)<span class="required">*</span>:</label>
+            <input type="text" id="author-contact" name="authorContact" placeholder="Enter phone numbers separated by commas" required>
+
+            <label for="abstract">Abstract (Max 350 words)<span class="required">*</span>:</label>
+            <textarea id="abstract" name="abstractContent" placeholder="Write your abstract here (Max: 350 words)" rows="5" required></textarea>
+
+            <!-- Submit Button -->
+            <button type="submit">Update Submission</button>
+        </form>
+    </div>
+
+    <script>
+        // Fetch submission data and populate the form
+        window.onload = async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const uniqueID = urlParams.get('id');
+
+            if (uniqueID) {
+                const response = await fetch(`https://<your-render-domain>/edit?id=${uniqueID}`);
+                const data = await response.json();
+
+                document.getElementById('submitter-name').value = data.submitterName;
+                document.getElementById('submitter-email').value = data.submitterEmail;
+                document.getElementById('abstract-title').value = data.abstractTitle;
+                document.getElementById('abstract-type').value = data.abstractType;
+
+                if (data.abstractType === 'technical-paper') {
+                    document.getElementById('technical-paper-options').classList.remove('hidden');
+                } else if (data.abstractType === 'poster') {
+                    document.getElementById('poster-options').classList.remove('hidden');
+                }
+
+                // Populate other fields similarly
+                document.getElementById('company').value = data.company;
+                document.getElementById('discipline').value = data.discipline;
+                document.getElementById('author-names').value = data.authorNames;
+                document.getElementById('author-emails').value = data.authorEmails;
+                document.getElementById('author-positions').value = data.authorPositions;
+                document.getElementById('author-contact').value = data.authorContact;
+                document.getElementById('abstract').value = data.abstractContent;
+            }
+        };
+
+        // Handle the update form submission
+        async function handleUpdate(event) {
+            event.preventDefault();
+            
+            const updatedData = {
+                submitterName: document.getElementById('submitter-name').value,
+                submitterEmail: document.getElementById('submitter-email').value,
+                abstractTitle: document.getElementById('abstract-title').value,
+                abstractType: document.getElementById('abstract-type').value,
+                theme: document.querySelector('input[name="theme"]:checked').value,
+                company: document.getElementById('company').value,
+                discipline: document.getElementById('discipline').value,
+                authorNames: document.getElementById('author-names').value,
+                authorEmails: document.getElementById('author-emails').value,
+                authorPositions: document.getElementById('author-positions').value,
+                authorContact: document.getElementById('author-contact').value,
+                abstractContent: document.getElementById('abstract').value
+            };
+
+            const uniqueID = new URLSearchParams(window.location.search).get('id');
+
+            const response = await fetch(`https://<your-render-domain>/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: uniqueID, updatedData }),
+            });
+
+            if (response.ok) {
+                alert('Submission updated successfully!');
+                window.location.href = 'thank-you.html';
+            } else {
+                alert('Failed to update submission. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>
