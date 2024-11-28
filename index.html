@@ -166,8 +166,7 @@
                 });
 
                 if (response.ok) {
-                    document.getElementById('abstract-form').reset();
-                    document.getElementById('success-message').classList.remove('hidden');
+                    window.location.href = 'thank-you.html';
                 } else {
                     alert('Submission failed. Please try again.');
                 }
