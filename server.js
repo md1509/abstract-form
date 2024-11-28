@@ -154,12 +154,14 @@ app.get('/edit', async (req, res) => {
             return res.status(400).send({ error: 'Unique ID is required in the query parameters.' });
         }
 
-        const submission = await Submission.findOne({ uniqueID: Number(id) }); // Convert ID to number
+        console.log(`Received ID: ${id}`);
+
+        const submission = await Submission.findOne({ uniqueID: Number(id) });
+
         if (!submission) {
             return res.status(404).send({ error: `Submission with ID ${id} not found.` });
         }
 
-        // Serve the 'edit.html' page with data injected
         const editPage = `
             <!DOCTYPE html>
             <html lang="en">
@@ -221,7 +223,7 @@ app.get('/edit', async (req, res) => {
             </html>
         `;
 
-        res.send(editPage); // Send the HTML page as the response
+        res.send(editPage); // Send the populated HTML as response
     } catch (error) {
         console.error('Error in /edit endpoint:', error);
         res.status(500).send({ error: 'An unexpected error occurred while fetching the submission.' });
