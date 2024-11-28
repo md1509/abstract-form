@@ -58,22 +58,20 @@ app.get('/', (req, res) => {
 // API Endpoint to handle form submissions
 app.post('/submit', async (req, res) => {
     try {
-        console.log('Incoming request:', req.body); // Log the request body
+        console.log('Incoming request:', req.body);
 
         const submission = req.body;
 
         // Generate a unique ID for this submission
         const uniqueID = Math.random().toString(36).substr(2, 9);
         submission.uniqueID = uniqueID;
-        console.log('Generated unique ID:', uniqueID);
 
         // Save the submission to MongoDB
         const newSubmission = new Submission(submission);
         await newSubmission.save();
-        console.log('Submission saved to MongoDB:', newSubmission);
 
-        // Generate an edit link
-        const editLink = `https://your-render-domain.com/edit?id=${uniqueID}`;
+        // Generate an edit link dynamically
+        const editLink = `${req.protocol}://${req.get('host')}/edit?id=${uniqueID}`;
 
         // Send confirmation email to the submitter
         const confirmationEmail = {
@@ -85,7 +83,6 @@ app.post('/submit', async (req, res) => {
             Editing deadline: 2024-12-31.`,
         };
         await transporter.sendMail(confirmationEmail);
-        console.log('Confirmation email sent to:', submission.submitterEmail);
 
         // Notify the admin
         const adminEmail = {
@@ -98,13 +95,31 @@ app.post('/submit', async (req, res) => {
             Check the admin dashboard for more details.`,
         };
         await transporter.sendMail(adminEmail);
-        console.log('Admin email sent to:', process.env.ADMIN_EMAIL);
 
-        // Respond with success
         res.status(200).send({ message: 'Submission successful!', uniqueID });
     } catch (error) {
         console.error('Error handling submission:', error);
         res.status(500).send('An error occurred while processing your submission.');
+    }
+});
+
+// API Endpoint to fetch a submission by uniqueID
+app.get('/edit', async (req, res) => {
+    try {
+        const { id } = req.query;
+        if (!id) {
+            return res.status(400).send({ error: 'Unique ID is required' });
+        }
+
+        const submission = await Submission.findOne({ uniqueID: id });
+        if (!submission) {
+            return res.status(404).send({ error: 'Submission not found' });
+        }
+
+        res.status(200).send(submission);
+    } catch (error) {
+        console.error('Error in /edit endpoint:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
     }
 });
 
