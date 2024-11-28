@@ -151,7 +151,6 @@ app.post('/submit', async (req, res) => {
 });
 
 // API Endpoint to fetch a submission by uniqueID and render the form with data
-// API Endpoint to fetch a submission by uniqueID and render the form with data
 app.get('/edit', async (req, res) => {
     try {
         const { id } = req.query;
@@ -176,21 +175,113 @@ app.get('/edit', async (req, res) => {
             return res.status(404).json({ error: `Submission with ID ${numericId} not found.` });
         }
 
-        // Return the submission data as JSON
-        res.status(200).json({
-            submitterName: submission.submitterName,
-            submitterEmail: submission.submitterEmail,
-            abstractTitle: submission.abstractTitle,
-            abstractType: submission.abstractType,
-            company: submission.company,
-            discipline: submission.discipline,
-            authorNames: submission.authorNames,
-            authorEmails: submission.authorEmails,
-            authorPositions: submission.authorPositions,
-            authorContact: submission.authorContact,
-            abstractContent: submission.abstractContent
-        });
+        // Populate the HTML form template with the submission data
+        const editPage = `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Edit Abstract Submission</title>
+                <link rel="stylesheet" href="styles.css">
+            </head>
+            <body>
+                <header class="form-header">
+                    <img src="qatarenergy-logo.png" alt="QatarEnergy Logo" class="logo">
+                    <h1>Edit Abstract Submission: 19th QatarEnergy LNG Engineering Conference</h1>
+                </header>
 
+                <div class="form-container">
+                    <h1>Edit Your Abstract</h1>
+                    <form id="edit-form" onsubmit="return handleUpdate(event)">
+                        <label for="submitter-name">Submitter Name<span class="required">*</span>:</label>
+                        <input type="text" id="submitter-name" name="submitterName" value="${submission.submitterName}" required>
+
+                        <label for="submitter-email">Submitter E-mail<span class="required">*</span>:</label>
+                        <input type="email" id="submitter-email" name="submitterEmail" value="${submission.submitterEmail}" required>
+
+                        <label for="abstract-title">Abstract Title<span class="required">*</span>:</label>
+                        <input type="text" id="abstract-title" name="abstractTitle" value="${submission.abstractTitle}" required>
+
+                        <!-- Abstract Type Dropdown -->
+                        <label for="abstract-type">Abstract Type<span class="required">*</span>:</label>
+                        <select id="abstract-type" name="abstractType" onchange="showAbstractOptions()" required>
+                            <option value="technical-paper" ${submission.abstractType === 'technical-paper' ? 'selected' : ''}>Technical Paper</option>
+                            <option value="poster" ${submission.abstractType === 'poster' ? 'selected' : ''}>Poster</option>
+                        </select>
+
+                        <!-- Technical Paper Themes -->
+                        <div id="technical-paper-options" class="hidden options-box">
+                            <p>Technical Paper Themes:</p>
+                            <label>
+                                <input type="radio" id="digitalization" name="theme" value="Digitalization, Cyber Security & AI" ${submission.theme === 'Digitalization, Cyber Security & AI' ? 'checked' : ''}>
+                                Digitalization, Cyber Security & AI
+                            </label><br>
+                            <label>
+                                <input type="radio" id="decarbonization" name="theme" value="Decarbonization Initiatives" ${submission.theme === 'Decarbonization Initiatives' ? 'checked' : ''}>
+                                Decarbonization Initiatives
+                            </label><br>
+                            <label>
+                                <input type="radio" id="aging-facilities" name="theme" value="Aging Facilities & Asset Life Extension" ${submission.theme === 'Aging Facilities & Asset Life Extension' ? 'checked' : ''}>
+                                Aging Facilities & Asset Life Extension
+                            </label><br>
+                            <label>
+                                <input type="radio" id="energy-efficiency" name="theme" value="Energy Efficiency & Yield Improvement" ${submission.theme === 'Energy Efficiency & Yield Improvement' ? 'checked' : ''}>
+                                Energy Efficiency & Yield Improvement
+                            </label>
+                        </div>
+
+                        <!-- Poster Themes -->
+                        <div id="poster-options" class="hidden options-box">
+                            <p>Poster Themes:</p>
+                            <label>
+                                <input type="radio" id="innovation" name="theme" value="Innovation, Technology & Sustainability" ${submission.theme === 'Innovation, Technology & Sustainability' ? 'checked' : ''}>
+                                Innovation, Technology & Sustainability
+                            </label><br>
+                            <label>
+                                <input type="radio" id="integrity" name="theme" value="Integrity, Reliability & Process Safety" ${submission.theme === 'Integrity, Reliability & Process Safety' ? 'checked' : ''}>
+                                Integrity, Reliability & Process Safety
+                            </label><br>
+                            <label>
+                                <input type="radio" id="optimization" name="theme" value="Optimization, Best Practices & Operations Excellence" ${submission.theme === 'Optimization, Best Practices & Operations Excellence' ? 'checked' : ''}>
+                                Optimization, Best Practices & Operations Excellence
+                            </label>
+                        </div>
+
+                        <label for="company">Company<span class="required">*</span>:</label>
+                        <input type="text" id="company" name="company" value="${submission.company}" required>
+
+                        <label for="discipline">Discipline<span class="required">*</span>:</label>
+                        <input type="text" id="discipline" name="discipline" value="${submission.discipline}" required>
+
+                        <!-- Author/Co-author Details -->
+                        <h3>Author/Co-author Details</h3>
+                        <label for="author-names">Author/Co-author Name(s)<span class="required">*</span>:</label>
+                        <input type="text" id="author-names" name="authorNames" value="${submission.authorNames}" required>
+
+                        <label for="author-emails">Author/Co-author E-mail(s)<span class="required">*</span>:</label>
+                        <input type="email" id="author-emails" name="authorEmails" value="${submission.authorEmails}" required>
+
+                        <label for="author-positions">Author/Co-author Position Title(s)<span class="required">*</span>:</label>
+                        <input type="text" id="author-positions" name="authorPositions" value="${submission.authorPositions}" required>
+
+                        <label for="author-contact">Author/Co-author Contact Number(s)<span class="required">*</span>:</label>
+                        <input type="text" id="author-contact" name="authorContact" value="${submission.authorContact}" required>
+
+                        <label for="abstract">Abstract (Max 350 words)<span class="required">*</span>:</label>
+                        <textarea id="abstract" name="abstractContent" rows="5" required>${submission.abstractContent}</textarea>
+
+                        <!-- Submit Button -->
+                        <button type="submit">Update Submission</button>
+                    </form>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Send the populated HTML as response
+        res.send(editPage);
+        
     } catch (error) {
         console.error('Error in /edit endpoint:', error);
         res.status(500).json({ error: 'An unexpected error occurred while fetching the submission.' });
