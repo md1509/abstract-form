@@ -1,0 +1,186 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffffff;
+    overflow-x: hidden;
+    color: #333;
+    margin: 0;
+    padding: 0;
+    display: flex; /* Flexbox for alignment */
+    flex-direction: column; /* Stack header and form vertically */
+    align-items: center; /* Center horizontally */
+    justify-content: flex-start; /* Align content from the top */
+    min-height: 100vh; /* Full viewport height */
+}
+
+header.form-header {
+    background-color: #003366; /* Dark blue background */
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
+    width: 100%; /* Full-width header */
+    margin-bottom: 20px;
+}
+
+header.form-header .logo {
+    max-width: 120px; /* Adjust logo size */
+    margin: 0 auto;
+    display: block;
+}
+
+header.form-header h1 {
+    font-size: 1.6em; /* Slightly larger title font */
+    font-weight: bold;
+    margin: 20px 0; /* Add spacing below the logo */
+    padding-top: 10px; /* Push the title slightly down */
+    line-height: 1.5; /* Improve readability */
+}
+
+header.form-header p {
+    display: none; /* Remove subtitle */
+}
+
+
+.form-container {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    width: 60%; /* Adjust form width */
+    max-width: 700px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    margin: 20px auto;
+    text-align: left;
+}
+
+.form-container h1 {
+    text-align: center;
+    font-size: 1.5em;
+    color: #003366; /* Match header color */
+    margin-bottom: 20px;
+}
+
+label {
+    display: block; /* Each label gets its own line */
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select,
+textarea {
+    width: 100%; /* Full width for input, select, and textarea fields */
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Prevent padding overflow */
+}
+
+textarea {
+    resize: none; /* Disable resizing */
+    height: 150px; /* Fixed height for consistency */
+}
+
+#abstract-type {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+/* Options Box for Themes */
+.options-box {
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    margin-top: 10px;
+}
+
+/* Hidden Sections */
+.hidden {
+    display: none;
+}
+
+/* Radio Button Labels */
+label[for^="digitalization"],
+label[for^="decarbonization"],
+label[for^="aging-facilities"],
+label[for^="energy-efficiency"],
+label[for^="innovation"],
+label[for^="integrity"],
+label[for^="optimization"] {
+    display: inline; /* Keep labels inline with radio buttons */
+    margin-left: 5px; /* Add spacing between radio button and label */
+}
+
+/* Radio Buttons */
+input[type="radio"] {
+    margin-right: 10px; /* Add spacing between radio and label */
+}
+
+button {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em; /* Consistent font size */
+    cursor: pointer;
+    width: 100%;
+    text-align: center;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.guidelines {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    line-height: 1.5;
+    font-size: 0.9em; /* Slightly smaller font */
+}
+
+.guidelines h3 {
+    margin-top: 20px; /* Adds spacing before each heading */
+    margin-bottom: 10px; /* Adds consistent spacing below the heading */
+    font-size: 1.1em; /* Slightly larger for headers */
+    font-weight: bold;
+}
+
+/* Add specific spacing between the guideline and structure sections */
+.guidelines h3:first-of-type {
+    margin-top: 0; /* Ensure no extra spacing for the first header */
+}
+
+.guidelines ul {
+    margin: 10px 0 0 20px;
+    padding: 0;
+    list-style: disc;
+}
+
+.required {
+    color: red; /* Red color for the asterisk */
+    margin-left: 2px; /* Add a small gap between the label and the asterisk */
+}
+
+.note {
+    margin-top: 20px;
+    font-size: 0.9em; /* Slightly smaller than normal text */
+    color: #333; /* Standard text color */
+    line-height: 1.5;
+    text-align: left;
+}
+
+.note strong {
+    color: #000; /* Ensure "Note:" is bold and prominent */
+}
+
