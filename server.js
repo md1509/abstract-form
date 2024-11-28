@@ -77,6 +77,7 @@ app.get('/', (req, res) => {
 });
 
 // API Endpoint to handle form submissions
+// API Endpoint to handle form submissions
 app.post('/submit', async (req, res) => {
     const sanitizedSubmission = sanitize(req.body);
 
@@ -112,14 +113,15 @@ app.post('/submit', async (req, res) => {
 
         // Send confirmation email to the submitter
         const confirmationEmail = {
-            from: process.env.EMAIL_USER,
-            to: sanitizedSubmission.submitterEmail,
-            subject: 'Submission Confirmation',
+            from: process.env.EMAIL_USER,  // From the sender's email (configured in .env)
+            to: sanitizedSubmission.submitterEmail, // To the user's email
+            subject: 'Submission Confirmation',  // Subject of the email
             text: `Thank you for your submission! Your unique ID is ${uniqueID}.
             Edit your submission here: ${editLink}.
-            Editing deadline: 2024-12-31.`,
+            Editing deadline: 2024-12-31.`,  // Email content
         };
 
+        // Sending email
         try {
             await transporter.sendMail(confirmationEmail);
             console.log(`Confirmation email sent to: ${sanitizedSubmission.submitterEmail}`);
@@ -145,6 +147,7 @@ app.post('/submit', async (req, res) => {
         res.status(500).send('An error occurred while processing your submission.');
     }
 });
+
 
 // API Endpoint to fetch a submission by uniqueID and render the form with data
 app.get('/edit', async (req, res) => {
