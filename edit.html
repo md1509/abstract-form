@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Abstract Submission</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <!-- Header Section -->
     <header class="form-header">
@@ -100,7 +102,7 @@
 
     <script>
         // Fetch submission data and populate the form
-        window.onload = async function() {
+        window.onload = async function () {
             const urlParams = new URLSearchParams(window.location.search);
             const uniqueID = urlParams.get('id');
 
@@ -132,7 +134,7 @@
         // Handle the update form submission
         async function handleUpdate(event) {
             event.preventDefault();
-            
+
             const updatedData = {
                 submitterName: document.getElementById('submitter-name').value,
                 submitterEmail: document.getElementById('submitter-email').value,
@@ -165,4 +167,5 @@
         }
     </script>
 </body>
+
 </html>
