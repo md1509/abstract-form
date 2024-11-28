@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const sanitize = require('mongo-sanitize'); // Sanitize user inputs to prevent injection attacks
 
 const app = express();
 app.use(bodyParser.json());
@@ -73,17 +74,33 @@ app.get('/', (req, res) => {
 
 // API Endpoint to handle form submissions
 app.post('/submit', async (req, res) => {
-    try {
-        console.log('Incoming request:', req.body);
+    const sanitizedSubmission = sanitize(req.body);
 
-        const submission = req.body;
+    const requiredFields = [
+        'submitterName',
+        'submitterEmail',
+        'abstractTitle',
+        'abstractType',
+        'theme',
+        'company',
+        'discipline',
+        'authorNames',
+        'abstractContent',
+    ];
+    const missingFields = requiredFields.filter((field) => !sanitizedSubmission[field]);
+    if (missingFields.length > 0) {
+        return res.status(400).send({ error: `Missing required fields: ${missingFields.join(', ')}` });
+    }
+
+    try {
+        console.log('Incoming request:', sanitizedSubmission);
 
         // Generate a sequential unique ID
         const uniqueID = await getNextSequence('submissionID');
-        submission.uniqueID = uniqueID;
+        sanitizedSubmission.uniqueID = uniqueID;
 
         // Save the submission to MongoDB
-        const newSubmission = new Submission(submission);
+        const newSubmission = new Submission(sanitizedSubmission);
         await newSubmission.save();
 
         // Generate an edit link dynamically
@@ -92,13 +109,18 @@ app.post('/submit', async (req, res) => {
         // Send confirmation email to the submitter
         const confirmationEmail = {
             from: process.env.EMAIL_USER,
-            to: submission.submitterEmail,
+            to: sanitizedSubmission.submitterEmail,
             subject: 'Submission Confirmation',
             text: `Thank you for your submission! Your unique ID is ${uniqueID}.
             Edit your submission here: ${editLink}.
             Editing deadline: 2024-12-31.`,
         };
-        await transporter.sendMail(confirmationEmail);
+        try {
+            await transporter.sendMail(confirmationEmail);
+            console.log(`Confirmation email sent to: ${sanitizedSubmission.submitterEmail}`);
+        } catch (emailError) {
+            console.error(`Failed to send confirmation email to: ${sanitizedSubmission.submitterEmail}`, emailError);
+        }
 
         // Notify the admin
         const adminEmail = {
@@ -106,8 +128,8 @@ app.post('/submit', async (req, res) => {
             to: process.env.ADMIN_EMAIL,
             subject: 'New Submission Received',
             text: `A new abstract submission has been received:
-            Submitter: ${submission.submitterName}
-            Title: ${submission.abstractTitle}
+            Submitter: ${sanitizedSubmission.submitterName}
+            Title: ${sanitizedSubmission.abstractTitle}
             Check the admin dashboard for more details.`,
         };
         await transporter.sendMail(adminEmail);
@@ -127,7 +149,7 @@ app.get('/edit', async (req, res) => {
             return res.status(400).send({ error: 'Unique ID is required in the query parameters.' });
         }
 
-        const submission = await Submission.findOne({ uniqueID: id });
+        const submission = await Submission.findOne({ uniqueID: Number(id) }); // Convert ID to number
         if (!submission) {
             return res.status(404).send({ error: `Submission with ID ${id} not found.` });
         }
@@ -141,14 +163,22 @@ app.get('/edit', async (req, res) => {
 
 // API Endpoint to update a submission
 app.post('/update', async (req, res) => {
-    try {
-        const { id, updatedData } = req.body;
-        if (!id || !updatedData) {
-            return res.status(400).send({ error: 'Unique ID and updated data are required.' });
-        }
+    const sanitizedRequest = sanitize(req.body);
 
+    const { id, updatedData } = sanitizedRequest;
+    if (!id || !updatedData) {
+        return res.status(400).send({ error: 'Unique ID and updated data are required.' });
+    }
+
+    // Enforce editing deadline
+    const deadline = new Date('2024-12-31');
+    if (new Date() > deadline) {
+        return res.status(403).send({ error: 'Editing deadline has passed.' });
+    }
+
+    try {
         const updatedSubmission = await Submission.findOneAndUpdate(
-            { uniqueID: id },
+            { uniqueID: Number(id) },
             updatedData,
             { new: true } // Return the updated document
         );
@@ -164,7 +194,12 @@ app.post('/update', async (req, res) => {
             subject: 'Submission Updated',
             text: `Your submission with ID ${id} has been successfully updated.`,
         };
-        await transporter.sendMail(updateEmail);
+        try {
+            await transporter.sendMail(updateEmail);
+            console.log(`Update email sent to: ${updatedSubmission.submitterEmail}`);
+        } catch (emailError) {
+            console.error(`Failed to send update email to: ${updatedSubmission.submitterEmail}`, emailError);
+        }
 
         res.status(200).send({ message: 'Submission updated successfully!', updatedSubmission });
     } catch (error) {
