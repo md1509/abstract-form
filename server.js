@@ -151,15 +151,13 @@ app.post('/submit', async (req, res) => {
 });
 
 // API Endpoint to fetch a submission by uniqueID and render the form with data
+// API Endpoint to fetch a submission by uniqueID and render the form with data
 app.get('/edit', async (req, res) => {
     try {
         const { id } = req.query;
 
-        // Debugging: Log the received ID
-        console.log(`Received ID from query string: ${id}`);
-
+        // If no ID is provided in the query string, return a 400 error
         if (!id) {
-            // If no ID is provided in the query string, return a 400 error
             return res.status(400).json({ error: 'Unique ID is required in the query parameters.' });
         }
 
@@ -170,9 +168,6 @@ app.get('/edit', async (req, res) => {
             return res.status(400).json({ error: 'Invalid ID provided. ID must be a number.' });
         }
 
-        // Log the numeric ID for debugging purposes
-        console.log(`Converted ID to number: ${numericId}`);
-
         // Query the database using the numeric ID
         const submission = await Submission.findOne({ uniqueID: numericId });
 
@@ -181,7 +176,7 @@ app.get('/edit', async (req, res) => {
             return res.status(404).json({ error: `Submission with ID ${numericId} not found.` });
         }
 
-        // Return the submission data as JSON for frontend processing
+        // Return the submission data as JSON
         res.status(200).json({
             submitterName: submission.submitterName,
             submitterEmail: submission.submitterEmail,
