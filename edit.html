@@ -105,7 +105,7 @@
             const uniqueID = urlParams.get('id');
 
             if (uniqueID) {
-                const response = await fetch(`https://<your-render-domain>/edit?id=${uniqueID}`);
+                const response = await fetch(`https://abstract-form.onrender.com/edit?id=${uniqueID}`);
                 const data = await response.json();
 
                 document.getElementById('submitter-name').value = data.submitterName;
@@ -119,7 +119,6 @@
                     document.getElementById('poster-options').classList.remove('hidden');
                 }
 
-                // Populate other fields similarly
                 document.getElementById('company').value = data.company;
                 document.getElementById('discipline').value = data.discipline;
                 document.getElementById('author-names').value = data.authorNames;
@@ -151,7 +150,7 @@
 
             const uniqueID = new URLSearchParams(window.location.search).get('id');
 
-            const response = await fetch(`https://<your-render-domain>/update`, {
+            const response = await fetch(`https://abstract-form.onrender.com/update`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: uniqueID, updatedData }),
