@@ -107,27 +107,52 @@
             const uniqueID = urlParams.get('id');
 
             if (uniqueID) {
-                const response = await fetch(`https://abstract-form.onrender.com/edit?id=${uniqueID}`);
-                const data = await response.json();
+                try {
+                    // Request to backend to get data by ID
+                    const response = await fetch(`https://abstract-form.onrender.com/edit?id=${uniqueID}`);
 
-                document.getElementById('submitter-name').value = data.submitterName;
-                document.getElementById('submitter-email').value = data.submitterEmail;
-                document.getElementById('abstract-title').value = data.abstractTitle;
-                document.getElementById('abstract-type').value = data.abstractType;
+                    // Check if the response is OK and contains the expected JSON
+                    if (response.ok) {
+                        const data = await response.json();
 
-                if (data.abstractType === 'technical-paper') {
-                    document.getElementById('technical-paper-options').classList.remove('hidden');
-                } else if (data.abstractType === 'poster') {
-                    document.getElementById('poster-options').classList.remove('hidden');
+                        // Populate the form with the retrieved data
+                        document.getElementById('submitter-name').value = data.submitterName;
+                        document.getElementById('submitter-email').value = data.submitterEmail;
+                        document.getElementById('abstract-title').value = data.abstractTitle;
+                        document.getElementById('abstract-type').value = data.abstractType;
+
+                        // Show appropriate options based on abstract type
+                        if (data.abstractType === 'technical-paper') {
+                            document.getElementById('technical-paper-options').classList.remove('hidden');
+                        } else if (data.abstractType === 'poster') {
+                            document.getElementById('poster-options').classList.remove('hidden');
+                        }
+
+                        document.getElementById('company').value = data.company;
+                        document.getElementById('discipline').value = data.discipline;
+                        document.getElementById('author-names').value = data.authorNames;
+                        document.getElementById('author-emails').value = data.authorEmails;
+                        document.getElementById('author-positions').value = data.authorPositions;
+                        document.getElementById('author-contact').value = data.authorContact;
+                        document.getElementById('abstract').value = data.abstractContent;
+
+                        // Pre-select the appropriate theme based on the returned data
+                        const themeRadios = document.getElementsByName('theme');
+                        themeRadios.forEach(radio => {
+                            if (radio.value === data.theme) {
+                                radio.checked = true;
+                            }
+                        });
+                    } else {
+                        console.error('Failed to fetch submission data');
+                        alert('Failed to fetch data. Please try again later.');
+                    }
+                } catch (error) {
+                    console.error('Error during fetch:', error);
+                    alert('An error occurred while retrieving the submission data.');
                 }
-
-                document.getElementById('company').value = data.company;
-                document.getElementById('discipline').value = data.discipline;
-                document.getElementById('author-names').value = data.authorNames;
-                document.getElementById('author-emails').value = data.authorEmails;
-                document.getElementById('author-positions').value = data.authorPositions;
-                document.getElementById('author-contact').value = data.authorContact;
-                document.getElementById('abstract').value = data.abstractContent;
+            } else {
+                alert('No ID found in the URL.');
             }
         };
 
