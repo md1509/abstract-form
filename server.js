@@ -15,6 +15,23 @@ mongoose
     .then(() => console.log('Connected to MongoDB Atlas'))
     .catch((err) => console.error('MongoDB connection error:', err));
 
+// Counter schema for auto-increment
+const counterSchema = new mongoose.Schema({
+    id: { type: String, required: true },
+    seq: { type: Number, default: 0 },
+});
+const Counter = mongoose.model('Counter', counterSchema);
+
+// Function to get the next sequence number
+const getNextSequence = async (sequenceName) => {
+    const counter = await Counter.findOneAndUpdate(
+        { id: sequenceName },
+        { $inc: { seq: 1 } },
+        { new: true, upsert: true } // Create document if it doesn't exist
+    );
+    return counter.seq;
+};
+
 // Define the submission schema
 const submissionSchema = new mongoose.Schema({
     submitterName: { type: String, required: true },
@@ -26,10 +43,9 @@ const submissionSchema = new mongoose.Schema({
     discipline: { type: String, required: true },
     authorNames: { type: String, required: true },
     abstractContent: { type: String, required: true },
-    uniqueID: { type: String, required: true },
+    uniqueID: { type: Number, required: true }, // Sequential unique ID
     createdAt: { type: Date, default: Date.now },
 });
-
 const Submission = mongoose.model('Submission', submissionSchema);
 
 // Configure Nodemailer with Gmail
@@ -42,7 +58,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Verify the Nodemailer configuration
-transporter.verify((error, success) => {
+transporter.verify((error) => {
     if (error) {
         console.error('Nodemailer error:', error);
     } else {
@@ -62,8 +78,8 @@ app.post('/submit', async (req, res) => {
 
         const submission = req.body;
 
-        // Generate a unique ID for this submission
-        const uniqueID = Math.random().toString(36).substr(2, 9);
+        // Generate a sequential unique ID
+        const uniqueID = await getNextSequence('submissionID');
         submission.uniqueID = uniqueID;
 
         // Save the submission to MongoDB
@@ -108,18 +124,52 @@ app.get('/edit', async (req, res) => {
     try {
         const { id } = req.query;
         if (!id) {
-            return res.status(400).send({ error: 'Unique ID is required' });
+            return res.status(400).send({ error: 'Unique ID is required in the query parameters.' });
         }
 
         const submission = await Submission.findOne({ uniqueID: id });
         if (!submission) {
-            return res.status(404).send({ error: 'Submission not found' });
+            return res.status(404).send({ error: `Submission with ID ${id} not found.` });
         }
 
         res.status(200).send(submission);
     } catch (error) {
         console.error('Error in /edit endpoint:', error);
-        res.status(500).send({ error: 'Internal Server Error' });
+        res.status(500).send({ error: 'An unexpected error occurred while fetching the submission.' });
+    }
+});
+
+// API Endpoint to update a submission
+app.post('/update', async (req, res) => {
+    try {
+        const { id, updatedData } = req.body;
+        if (!id || !updatedData) {
+            return res.status(400).send({ error: 'Unique ID and updated data are required.' });
+        }
+
+        const updatedSubmission = await Submission.findOneAndUpdate(
+            { uniqueID: id },
+            updatedData,
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedSubmission) {
+            return res.status(404).send({ error: `Submission with ID ${id} not found.` });
+        }
+
+        // Send update confirmation email to the submitter
+        const updateEmail = {
+            from: process.env.EMAIL_USER,
+            to: updatedSubmission.submitterEmail,
+            subject: 'Submission Updated',
+            text: `Your submission with ID ${id} has been successfully updated.`,
+        };
+        await transporter.sendMail(updateEmail);
+
+        res.status(200).send({ message: 'Submission updated successfully!', updatedSubmission });
+    } catch (error) {
+        console.error('Error in /update endpoint:', error);
+        res.status(500).send({ error: 'An error occurred while updating the submission.' });
     }
 });
 
