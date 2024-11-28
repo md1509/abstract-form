@@ -119,6 +119,7 @@ app.post('/submit', async (req, res) => {
             Edit your submission here: ${editLink}.
             Editing deadline: 2024-12-31.`,
         };
+
         try {
             await transporter.sendMail(confirmationEmail);
             console.log(`Confirmation email sent to: ${sanitizedSubmission.submitterEmail}`);
